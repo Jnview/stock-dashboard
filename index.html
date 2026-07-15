@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Screener Desk</title>
+<style>
+  :root {
+    --bg: #f7f4ee;
+    --surface: #ffffff;
+    --surface-2: #efeae0;
+    --border: #ddd5c4;
+    --text: #221f1a;
+    --text-dim: #726a5c;
+    --accent: #a97a1f;
+    --accent-soft: #f1e2c2;
+    --good: #3f7d54;
+    --good-soft: #dcecdf;
+    --bad: #b0463a;
+    --bad-soft: #f6dfdb;
+    --warn: #a97a1f;
+    --warn-soft: #f1e2c2;
+    --radius: 6px;
+    --mono: "SF Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15130f;
+      --surface: #1d1a15;
+      --surface-2: #262119;
+      --border: #353024;
+      --text: #ece6d8;
+      --text-dim: #9b9182;
+      --accent: #d9a441;
+      --accent-soft: #3a2f18;
+      --good: #6bbf86;
+      --good-soft: #1c2e20;
+      --bad: #e0776a;
+      --bad-soft: #3a1f1c;
+      --warn: #d9a441;
+      --warn-soft: #3a2f18;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15130f;
+    --surface: #1d1a15;
+    --surface-2: #262119;
+    --border: #353024;
+    --text: #ece6d8;
+    --text-dim: #9b9182;
+    --accent: #d9a441;
+    --accent-soft: #3a2f18;
+    --good: #6bbf86;
+    --good-soft: #1c2e20;
+    --bad: #e0776a;
+    --bad-soft: #3a1f1c;
+    --warn: #d9a441;
+    --warn-soft: #3a2f18;
+  }
+  :root[data-theme="light"] {
+    --bg: #f7f4ee;
+    --surface: #ffffff;
+    --surface-2: #efeae0;
+    --border: #ddd5c4;
+    --text: #221f1a;
+    --text-dim: #726a5c;
+    --accent: #a97a1f;
+    --accent-soft: #f1e2c2;
+    --good: #3f7d54;
+    --good-soft: #dcecdf;
+    --bad: #b0463a;
+    --bad-soft: #f6dfdb;
+    --warn: #a97a1f;
+    --warn-soft: #f1e2c2;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.4;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  .masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+  .masthead h1 {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+  .masthead h1::before { content: "▲ "; color: var(--accent); }
+  .masthead .meta { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 26px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .stat-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .stat-card .value {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .value.good { color: var(--good); }
+  .stat-card .value.bad { color: var(--bad); }
+  .stat-card .sub { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  section { margin-bottom: 30px; }
+  section > h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 12px; text-align: left; white-space: nowrap; }
+  th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr + tr td { border-top: 1px solid var(--border); }
+  td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  td.symbol { font-family: var(--mono); font-weight: 700; }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .pill.entered { background: var(--good-soft); color: var(--good); }
+  .pill.tp1_taken { background: var(--good-soft); color: var(--good); }
+  .pill.waiting_correction { background: var(--warn-soft); color: var(--warn); }
+  .pill.flat { background: var(--surface-2); color: var(--text-dim); }
+
+  .history-row td { padding: 4px 12px 12px; border-top: none !important; }
+  .history-track { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; white-space: normal; }
+  .history-step { display: inline-flex; align-items: baseline; gap: 5px; }
+  .history-kind {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+  }
+  .history-kind.entry { background: var(--good-soft); color: var(--good); }
+  .history-kind.tp1, .history-kind.tp2_close { background: var(--good-soft); color: var(--good); }
+  .history-kind.stop, .history-kind.waiting_correction_invalidated { background: var(--bad-soft); color: var(--bad); }
+  .history-kind.waiting_correction_start { background: var(--warn-soft); color: var(--warn); }
+  .history-kind.trailing_stop_raised, .history-kind.tier_assigned { background: var(--accent-soft); color: var(--accent); }
+  .history-meta { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+  .history-arrow { color: var(--text-dim); font-size: 11px; margin: 0 2px; }
+  .history-empty { font-family: var(--mono); font-size: 11px; color: var(--text-dim); font-style: italic; }
+
+  .pct.good { color: var(--good); }
+  .pct.bad { color: var(--bad); }
+
+  .empty-state {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .bar-row .bar-label { width: 130px; font-family: var(--mono); font-size: 12px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-fill.strategy { background: var(--accent); }
+  .bar-fill.benchmark { background: var(--text-dim); }
+  .bar-row .bar-value { width: 70px; text-align: right; font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  .screener-group { padding: 10px 0; }
+  .screener-group + .screener-group { border-top: 1px solid var(--border); }
+  .screener-group .bar-row { padding-bottom: 8px; }
+  .ticker-chips { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 140px; }
+  .ticker-chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .alert-log { display: flex; flex-direction: column; }
+  .alert-row {
+    display: grid;
+    grid-template-columns: 90px 70px 90px 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    align-items: baseline;
+  }
+  .alert-row:first-child { border-top: none; }
+  .alert-row .ts { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .alert-row .symbol { font-family: var(--mono); font-weight: 700; }
+  .alert-row .msg { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; }
+
+  footer { margin-top: 40px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Screener Desk</h1>
+    <div class="meta" id="generated-at"></div>
+  </div>
+
+  <div class="stat-row" id="stat-row"></div>
+
+  <section>
+    <h2>Open Positions</h2>
+    <div id="positions-target"></div>
+  </section>
+
+  <section>
+    <h2>Today's Screener Universe</h2>
+    <div id="screener-target"></div>
+  </section>
+
+  <section id="backtest-section">
+    <h2>Last Backtest Run</h2>
+    <div id="backtest-target"></div>
+  </section>
+
+  <section>
+    <h2>Recent Alerts</h2>
+    <div id="alerts-target"></div>
+  </section>
+
+  <footer>Regenerate: python3 -m reports.dashboard</footer>
+</div>
+
+<script id="dashboard-data" type="application/json">{"generated_at": "2026-07-15T09:07:10.842211+00:00", "open_positions": [{"symbol": "VCTR", "state": "ENTERED", "entry_price": 97.69999694824219, "entry_date": "2026-07-14 00:00:00", "updated_at": "2026-07-15T02:28:11.389889+00:00", "poc_tier": null, "current_price": 97.69999694824219, "unrealized_pct": 0.0, "sl_price": 87.92999725341797, "tp1_price": null, "tp2_price": null, "history": [{"ts": "2026-07-14 00:00:00", "kind": "ENTRY", "price": 97.69999694824219, "message": "Entered at 97.70  |  SL=87.93  |  TP tier pending first close above POC"}]}, {"symbol": "NVT", "state": "ENTERED", "entry_price": 161.77999877929688, "entry_date": "2026-07-14 00:00:00", "updated_at": "2026-07-15T02:28:03.286768+00:00", "poc_tier": null, "current_price": 161.77999877929688, "unrealized_pct": 0.0, "sl_price": 145.60199890136718, "tp1_price": null, "tp2_price": null, "history": [{"ts": "2026-07-14 00:00:00", "kind": "ENTRY", "price": 161.77999877929688, "message": "Entered at 161.78  |  SL=145.60  |  TP tier pending first close above POC"}]}, {"symbol": "LPG", "state": "ENTERED", "entry_price": 41.630001068115234, "entry_date": "2026-07-14 00:00:00", "updated_at": "2026-07-15T02:27:56.969626+00:00", "poc_tier": null, "current_price": 41.630001068115234, "unrealized_pct": 0.0, "sl_price": 37.46700096130371, "tp1_price": null, "tp2_price": null, "history": [{"ts": "2026-07-14 00:00:00", "kind": "ENTRY", "price": 41.630001068115234, "message": "Entered at 41.63  |  SL=37.47  |  TP tier pending first close above POC"}]}, {"symbol": "DTM", "state": "ENTERED", "entry_price": 148.25999450683594, "entry_date": "2026-07-14 00:00:00", "updated_at": "2026-07-15T02:27:50.036151+00:00", "poc_tier": null, "current_price": 148.25999450683594, "unrealized_pct": 0.0, "sl_price": 133.43399505615236, "tp1_price": null, "tp2_price": null, "history": [{"ts": "2026-07-14 00:00:00", "kind": "ENTRY", "price": 148.25999450683594, "message": "Entered at 148.26  |  SL=133.43  |  TP tier pending first close above POC"}]}, {"symbol": "DAVE", "state": "ENTERED", "entry_price": 417.0, "entry_date": "2026-07-14 00:00:00", "updated_at": "2026-07-15T02:27:49.732342+00:00", "poc_tier": null, "current_price": 417.0, "unrealized_pct": 0.0, "sl_price": 375.3, "tp1_price": null, "tp2_price": null, "history": [{"ts": "2026-07-14 00:00:00", "kind": "ENTRY", "price": 417.0, "message": "Entered at 417.00  |  SL=375.30  |  TP tier pending first close above POC"}]}], "screener": {"run_date": "2026-07-15", "total_symbols": 49, "by_template": [{"template": "full_version_jinna_screener", "count": 23, "symbols": ["ADI", "AMD", "ANET", "CECO", "CRDO", "DAVE", "DTM", "GKOS", "HEI", "IESC", "INCY", "KRYS", "LRCX", "MTSI", "MU", "MXL", "NVT", "PRSU", "PWR", "ROKU", "RSI", "TGTX", "WDC"]}, {"template": "full_version_minervini_screener", "count": 1, "symbols": ["MU"]}, {"template": "fundamental_minervini_screener", "count": 5, "symbols": ["ECTM", "MU", "NVDA", "PAYS", "PLTR"]}, {"template": "super_stock_jinna_screener", "count": 19, "symbols": ["ABX", "ADEA", "ALGM", "BELFA", "CECO", "CPRX", "CURB", "DAVE", "ECG", "ESE", "FLYW", "KARO", "LQDT", "RSI", "SEZL", "SPHR", "VCTR", "VCYT", "YOU"]}, {"template": "top_stocks_for_is", "count": 5, "symbols": ["ASIC", "CXW", "LPG", "SKWD", "SWBI"]}, {"template": "turnaround_stocks_for_is", "count": 1, "symbols": ["PBF"]}]}, "recent_alerts": [{"ts": "2026-07-14 00:00:00", "symbol": "VCTR", "kind": "ENTRY", "price": 97.69999694824219, "message": "Entered at 97.70  |  SL=87.93  |  TP tier pending first close above POC"}, {"ts": "2026-07-14 00:00:00", "symbol": "NVT", "kind": "ENTRY", "price": 161.77999877929688, "message": "Entered at 161.78  |  SL=145.60  |  TP tier pending first close above POC"}, {"ts": "2026-07-14 00:00:00", "symbol": "LPG", "kind": "ENTRY", "price": 41.630001068115234, "message": "Entered at 41.63  |  SL=37.47  |  TP tier pending first close above POC"}, {"ts": "2026-07-14 00:00:00", "symbol": "DTM", "kind": "ENTRY", "price": 148.25999450683594, "message": "Entered at 148.26  |  SL=133.43  |  TP tier pending first close above POC"}, {"ts": "2026-07-14 00:00:00", "symbol": "DAVE", "kind": "ENTRY", "price": 417.0, "message": "Entered at 417.00  |  SL=375.30  |  TP tier pending first close above POC"}, {"ts": "2026-07-13 00:00:00", "symbol": "PBF", "kind": "ENTRY", "price": 57.439998626708984, "message": "Entered at 57.44  |  TP1=68.80  TP2=86.03  SL=51.70"}, {"ts": "2026-07-10 00:00:00", "symbol": "RSI", "kind": "ENTRY", "price": 33.400001525878906, "message": "Entered at 33.40  |  TP1=40.00  TP2=50.02  SL=30.06"}, {"ts": "2026-07-10 00:00:00", "symbol": "NVDA", "kind": "ENTRY", "price": 210.9600067138672, "message": "Entered at 210.96  |  TP1=252.67  TP2=315.95  SL=189.86"}, {"ts": "2026-07-10 00:00:00", "symbol": "LPG", "kind": "ENTRY", "price": 40.04999923706055, "message": "Entered at 40.05  |  TP1=47.97  TP2=59.98  SL=36.04"}, {"ts": "2026-07-10 00:00:00", "symbol": "ECTM", "kind": "ENTRY", "price": 0.6399999856948853, "message": "Entered at 0.64  |  TP1=0.77  TP2=0.96  SL=0.58"}, {"ts": "2026-07-10 00:00:00", "symbol": "ASIC", "kind": "ENTRY", "price": 24.1200008392334, "message": "Entered at 24.12  |  TP1=28.89  TP2=36.12  SL=21.71"}], "last_backtest": {"run_date": "2026-07-15", "universe_size": 37, "total_entries": 593, "total_tp1": 60, "total_tp2": 15, "total_stops": 554, "completed_trades": 569, "win_rate": 0.4147627416520211, "avg_win": 0.1807524591612762, "avg_loss": -0.0683890471864625, "blended_return": 0.6911900795411418, "benchmark_returns": {"S&P 500": 0.6617203198375429, "NASDAQ-100": 0.8602232494805128, "Russell 2000": 0.5160657516805911}}}</script>
+<script>
+  const data = JSON.parse(document.getElementById("dashboard-data").textContent);
+
+  function fmtPct(x, digits = 1) {
+    if (x === null || x === undefined) return "—";
+    return (x >= 0 ? "+" : "") + (x * 100).toFixed(digits) + "%";
+  }
+  function fmtPrice(x) {
+    if (x === null || x === undefined) return "—";
+    return "$" + x.toFixed(2);
+  }
+  function pctClass(x) {
+    if (x === null || x === undefined) return "";
+    return x >= 0 ? "good" : "bad";
+  }
+  function escapeHtml(s) {
+    const div = document.createElement("div");
+    div.textContent = s === null || s === undefined ? "" : String(s);
+    return div.innerHTML;
+  }
+
+  document.getElementById("generated-at").textContent =
+    "generated " + new Date(data.generated_at).toLocaleString();
+
+  // --- Stat row ---
+  const stats = [];
+  stats.push({
+    label: "Open Positions",
+    value: data.open_positions.length,
+    sub: data.open_positions.length ? data.open_positions.map(p => p.symbol).join(", ") : "none right now",
+  });
+  stats.push({
+    label: "Screener Universe",
+    value: data.screener.total_symbols,
+    sub: data.screener.run_date ? "as of " + data.screener.run_date : "no data yet",
+  });
+  if (data.last_backtest) {
+    stats.push({
+      label: "Last Backtest Return",
+      value: fmtPct(data.last_backtest.blended_return),
+      valueClass: pctClass(data.last_backtest.blended_return),
+      sub: data.last_backtest.universe_size + " symbols, " + data.last_backtest.run_date,
+    });
+    const bench = data.last_backtest.benchmark_returns || {};
+    const beatsAll = Object.values(bench).every(b => data.last_backtest.blended_return > b);
+    stats.push({
+      label: "vs. Benchmarks",
+      value: beatsAll ? "Beats all 3" : "Mixed",
+      valueClass: beatsAll ? "good" : "",
+      sub: Object.entries(bench).map(([k, v]) => k + " " + fmtPct(v, 0)).join(" · "),
+    });
+  }
+
+  const statRow = document.getElementById("stat-row");
+  statRow.innerHTML = stats.map(s => `
+    <div class="stat-card">
+      <div class="label">${escapeHtml(s.label)}</div>
+      <div class="value ${s.valueClass || ""}">${escapeHtml(s.value)}</div>
+      <div class="sub">${escapeHtml(s.sub || "")}</div>
+    </div>
+  `).join("");
+
+  // --- Open positions ---
+  const posTarget = document.getElementById("positions-target");
+  if (!data.open_positions.length) {
+    posTarget.innerHTML = `<div class="empty-state">No open positions right now.</div>`;
+  } else {
+    const rows = data.open_positions.map(p => {
+      const stateClass = p.state.toLowerCase();
+      const history = (p.history || []).map(h => `
+        <span class="history-step">
+          <span class="history-kind ${h.kind.toLowerCase()}">${escapeHtml(h.kind)}</span>
+          <span class="history-meta">${escapeHtml((h.ts || "").slice(0, 10))}${h.price != null ? " @ " + fmtPrice(h.price) : ""}</span>
+        </span>
+      `).join(`<span class="history-arrow">&rarr;</span>`);
+      return `
+        <tr>
+          <td class="symbol">${escapeHtml(p.symbol)}</td>
+          <td><span class="pill ${stateClass}">${escapeHtml(p.state)}</span></td>
+          <td class="num">${fmtPrice(p.entry_price)}</td>
+          <td class="num">${fmtPrice(p.current_price)}</td>
+          <td class="num pct ${pctClass(p.unrealized_pct)}">${fmtPct(p.unrealized_pct)}</td>
+          <td class="num">${p.poc_tier ? "Tier " + p.poc_tier : "pending"}</td>
+          <td class="num">${fmtPrice(p.tp1_price)}</td>
+          <td class="num">${fmtPrice(p.tp2_price)}</td>
+          <td class="num">${fmtPrice(p.sl_price)}</td>
+        </tr>
+        <tr class="history-row">
+          <td colspan="9">
+            ${history ? `<div class="history-track">${history}</div>` : `<span class="history-empty">no logged events yet</span>`}
+          </td>
+        </tr>
+      `;
+    }).join("");
+    posTarget.innerHTML = `
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th><th>State</th>
+              <th class="num">Entry</th><th class="num">Now</th><th class="num">P&amp;L</th>
+              <th class="num">TP Tier</th><th class="num">TP1</th><th class="num">TP2</th><th class="num">SL</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // --- Screener universe ---
+  const screenerTarget = document.getElementById("screener-target");
+  if (!data.screener.run_date) {
+    screenerTarget.innerHTML = `<div class="empty-state">No screener runs recorded yet.</div>`;
+  } else {
+    const maxCount = Math.max(...data.screener.by_template.map(t => t.count), 1);
+    const groups = data.screener.by_template.map(t => {
+      const chips = (t.symbols || []).map(s => `<span class="ticker-chip">${escapeHtml(s)}</span>`).join("");
+      return `
+      <div class="screener-group">
+        <div class="bar-row">
+          <div class="bar-label">${escapeHtml(t.template)}</div>
+          <div class="bar-track"><div class="bar-fill strategy" style="width:${(t.count / maxCount * 100).toFixed(0)}%"></div></div>
+          <div class="bar-value">${t.count}</div>
+        </div>
+        <div class="ticker-chips">${chips}</div>
+      </div>
+    `;
+    }).join("");
+    screenerTarget.innerHTML = `<div class="table-scroll" style="padding:14px 16px;">${groups}</div>`;
+  }
+
+  // --- Last backtest ---
+  const backtestTarget = document.getElementById("backtest-target");
+  const bt = data.last_backtest;
+  if (!bt) {
+    document.getElementById("backtest-section").style.display = "none";
+  } else {
+    const benchBars = Object.entries(bt.benchmark_returns || {}).map(([name, ret]) => `
+      <div class="bar-row">
+        <div class="bar-label">${escapeHtml(name)}</div>
+        <div class="bar-track"><div class="bar-fill benchmark" style="width:${Math.min(Math.abs(ret) / 2, 1) * 100}%"></div></div>
+        <div class="bar-value pct ${pctClass(ret)}">${fmtPct(ret)}</div>
+      </div>
+    `).join("");
+    backtestTarget.innerHTML = `
+      <div class="table-scroll" style="padding:14px 16px;">
+        <div class="bar-row">
+          <div class="bar-label">Strategy</div>
+          <div class="bar-track"><div class="bar-fill strategy" style="width:${Math.min(Math.abs(bt.blended_return) / 2, 1) * 100}%"></div></div>
+          <div class="bar-value pct ${pctClass(bt.blended_return)}">${fmtPct(bt.blended_return)}</div>
+        </div>
+        ${benchBars}
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); font-family:var(--mono); font-size:12px; color:var(--text-dim);">
+          ${bt.total_entries} entries · ${bt.total_tp1} TP1 · ${bt.total_tp2} TP2 · ${bt.total_stops} stops ·
+          win rate ${fmtPct(bt.win_rate, 1)} · avg win ${fmtPct(bt.avg_win)} · avg loss ${fmtPct(bt.avg_loss)}
+        </div>
+      </div>
+    `;
+  }
+
+  // --- Recent alerts ---
+  const alertsTarget = document.getElementById("alerts-target");
+  if (!data.recent_alerts.length) {
+    alertsTarget.innerHTML = `<div class="empty-state">No alerts logged yet.</div>`;
+  } else {
+    const rows = data.recent_alerts.map(a => `
+      <div class="alert-row">
+        <div class="ts">${escapeHtml(a.ts)}</div>
+        <div class="symbol">${escapeHtml(a.symbol)}</div>
+        <div>${escapeHtml(a.kind)}</div>
+        <div class="msg">${escapeHtml(a.message)}</div>
+      </div>
+    `).join("");
+    alertsTarget.innerHTML = `<div class="table-scroll" style="padding:4px 16px;">${rows}</div>`;
+  }
+</script>
+</body>
+</html>
