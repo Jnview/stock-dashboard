@@ -1,0 +1,227 @@
+<!doctype html><html lang="th"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="THB350k pivot strategy reference and assumed-data research; not broker performance">
+<title>Pivot Strategy · +302.92% reference · 2026-10-05</title>
+<style>body{font:17px/1.7 system-ui;max-width:1100px;margin:32px auto;padding:0 20px;color:#182b27;background:#fafbf9}h1{line-height:1.3}.warning{background:#fff1d6;padding:18px;border-left:5px solid #ac6d00}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:10px;border-bottom:1px solid #d8dfdb;text-align:left}.scroll{overflow:auto}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:white;padding:22px;border:1px solid #d8dfdb}small{color:#596760}</style>
+<h1>Default Pivot Strategy · ฉบับเต็ม</h1><p>Primary reference: <strong>+302.92%</strong> · DD −27.87% · WR 43.42% · avg win +50.42% · avg loss −12.28%</p>
+<p>350,000 บาท / 35 sleeves / 10,000 บาทต่อ symbol · Fee $0.35/fill · slip 0.10%/side · FX35 สมมติ</p>
+<p>2023-09-23 → 2026-09-23 · 958 entries · 866 closed · 94 peak concurrent modeled slots · 92 open</p>
+<div class="warning">นี่คือผลวิจัยย้อนหลังบน universe ที่เลือกแล้ว ไม่ใช่บัญชีจริงหรือคำรับประกันผลตอบแทน<br>Average loss −12.28% ไม่ผ่านเกณฑ์เดิม &gt; −12%<br>Golden Cross reference override ในงานวิจัยไม่ใช่ production parity; gap-only ได้ +299.66%</div>
+<h2>ผลทดลองต้นทุนเดียวกัน</h2><div class="scroll"><table><thead><tr><th>Window / model</th><th>Return</th><th>Max DD</th><th>WR</th><th>Avg loss</th><th>Buy &amp; hold</th></tr></thead><tbody><tr><td>2020-09-23-research</td><td>+48.22%</td><td>-34.60%</td><td>31.24%</td><td>-13.72%</td><td>+99.75%</td></tr><tr><td>2023-09-23-research</td><td>+11.74%</td><td>-41.58%</td><td>27.30%</td><td>-13.81%</td><td>+53.68%</td></tr><tr><td>2026-09-23-research</td><td>+302.92%</td><td>-27.87%</td><td>43.42%</td><td>-12.28%</td><td>+480.18%</td></tr><tr><td>2026-09-23-production-gap-only</td><td>+299.66%</td><td>-27.90%</td><td>42.62%</td><td>-12.34%</td><td>+480.18%</td></tr></tbody></table></div>
+<p>ช่วงเก่าใช้35sleevesเหมือนเดิม หุ้นที่ข้อมูลยังไม่พร้อมเก็บ cash ไม่กระจายทุนใหม่ ไม่มีการ optimize parameters; ทุกช่วงไม่ผ่านเกณฑ์เดิมครบทุกข้อ Buy-and-hold ใช้ universe เดียวกันจึงมี selection bias เช่นกัน</p>
+<h2>กลยุทธ์และเงื่อนไขทั้งหมด</h2><pre># Default Pivot Strategy — ฉบับเต็ม ณ 2026-10-05
+
+เอกสารนี้เป็นข้อกำหนดปัจจุบันจาก executable code ไม่ใช่คำสั่งเปิดเทรดจริง
+และมีลำดับเหนือคำอธิบาย TP1/TP2 หรือพารามิเตอร์เก่าใน historical comments
+
+## 1. ตัวเลขหลักที่ผู้ใช้เลือก
+
+Reference ID: `THB350K-FX35-FEE035-SLIP10-20260923`
+
+| รายการ | ค่า |
+|---|---:|
+| ทุนสมมติ | 350,000 บาท |
+| โครงสร้าง | 35 sleeves × 10,000 บาท |
+| FX สมมติคงที่ | 35 บาท/USD |
+| Commission สมมติ | USD 0.35 ต่อ fill/order ที่จำลอง |
+| Slippage สมมติ | 0.10% ต่อด้าน |
+| ช่วงกำหนด | 2023-09-23 ถึง 2026-09-23 |
+| วันซื้อขายจริงในผล | 2023-09-25 ถึง 2026-09-23 |
+| Cumulative return | **+302.92%** |
+| Ending NAV รวม unrealized | **1,410,236.00 บาท** |
+| Portfolio max drawdown | **−27.87%** |
+| Win rate ของไม้ที่ปิด | **43.42%** |
+| Average win / loss ของไม้ที่ปิด | **+50.42% / −12.28%** |
+| Entries / completed / ending open | **958 / 866 / 92 slots** |
+| Peak concurrent ตามลำดับเหตุการณ์ daily bars | **94 slots** |
+| Holding days เฉลี่ยเฉพาะไม้ที่ปิด | **69.77 calendar days** |
+
+ห้ามอ้าง +345% หรือ +340% เป็นผลพอร์ต THB ชุดนี้ ทั้งสองเป็นหลักฐาน USD/รุ่นเก่า
+ที่เก็บไว้เพื่อ audit เท่านั้น Fee/FX นี้ไม่ใช่ราคาหรือ tariff ที่ยืนยันจาก Webull
+94 slots ไม่ใช่ 94 × 10,000 บาท: เงินแต่ละ symbol อยู่ใน sleeve เดียว ใช้ cash
+ที่เหลือ/ขายคืนภายใน sleeve ไม่มีการเติมทุนหรือ leverage เพื่อเปิดทุก signal
+จำนวนหุ้นเป็น integer และจำนวนไม้/การเติมไม้เปลี่ยนเมื่อเงินไม่พอ
+
+ชุดนี้ **ไม่ผ่านเงื่อนไขเดิมครบสามข้อ**: WR &gt;40% และ DD &gt;−30% ผ่าน แต่
+average loss &gt;−12% ไม่ผ่าน ห้ามเปลี่ยนเกณฑ์ย้อนหลังเพื่อให้ผลดูผ่าน
+
+## 2. ข้อมูลและ universe
+
+ใช้ daily OHLCV, earnings-gap references และ POC/ATR ที่คำนวณถึงวันนั้นเท่านั้น
+ย้อนหลัง 3 ปีสำหรับการจำลอง โดยมีประวัติก่อนเริ่มช่วงสำหรับ warm-up indicators
+35 symbols ที่ถูกตรึง:
+
+ADPT, ALM, AMD, ANET, ATAT, CDNA, COCO, COHU, COMP, DAVE, FIVE, FTK,
+GCT, GKOS, GRMN, HG, IESC, IMAX, INCY, KNSL, LPG, LQDT, LYFT, MU,
+NVDA, PBF, PLTR, PRSU, PTGX, RDVT, ROKU, SITM, UFCS, VCEL, VCTR.
+
+นี่คือ universe ที่เลือกจาก screener ปัจจุบัน ไม่ใช่รายชื่อสมาชิกที่ทราบจริงทุกวัน
+ในอดีต มี survivorship/selection bias และยังไม่ยืนยัน delisted coverage
+ราคาไม่มี total-return/dividend/tax/FX path สมบูรณ์ จึงไม่ใช่ผลลงทุนอิสระ
+
+## 3. Pattern A–B–C–D–E–F
+
+ทุกการเปรียบเทียบ pattern ใช้ **Close** ไม่ใช่ High/Low ของแท่ง
+
+- **A:** บริบทก่อน pattern ไม่มี separate A filter ที่ executable code บังคับ
+- **B:** local close peak เมื่อ `Close[B] &gt; Close[B−1]` และวันถัดไป
+  `Close[B+1] &lt; Close[B]` หนึ่งค่า B ต่อ candidate ไม่เลื่อน B ภายใน candidate
+  การรู้ว่าเป็น B ต้องรอแท่งถัดไป ไม่ใช้ข้อมูลอนาคตตัดสินซื้อในวัน B
+- **C:** เริ่มจาก negative-close day หลัง B (`Close[t] &lt; Close[t−1]`)
+  และเลื่อนไปเฉพาะ negative-close day ที่ Close ต่ำกว่า C เดิมระหว่างค้นหา D
+  เก็บสองค่าในวันเดียวกัน: **C_close** สำหรับ pattern/invalidation และ
+  **C_low** สำหรับ ATR trailing stop เมื่อ D finalize แล้ว C ถูกตรึง
+- **D:** rally ที่สูงกว่า B และเป็น positive-close day; ขยาย D เมื่อสูงขึ้น
+  code ยังติดตาม highest Close จริงตั้งแต่หลัง B เพื่อไม่ให้ rebound ที่ต่ำกว่า
+  high เก่าถูกใช้เป็น breakout threshold ใหม่ D finalizes เมื่อเจอแท่งที่ไม่
+  ขยาย D ภายหลังมี D แล้ว โดย branch ที่อัปเดต C ยังมีลำดับก่อน finalize
+- **E:** ช่วง pullback หลัง D finalize ระหว่างรอ F ไม่จำเป็นต้องมีแท่ง E เดียว
+  Close ต่ำกว่า C_close ทำให้ candidate ยกเลิก; เท่ากับ C ไม่ยกเลิก
+- **F:** แท่งแรกหลัง finalize ที่ `Close[F] &gt; highest prior Close` ของ candidate
+  และ `Close[F] &gt; Close[F−1]` เป็น pivot signal ทันที ไม่รอแท่งถัดไปยืนยัน F
+  เท่ากับ D ไม่ใช่ breakout และแท่ง finalize D ไม่ fire F ใน branch เดียวกัน
+
+ติดตามหลาย B candidates พร้อมกันได้ เมื่อหลาย candidate fire วันเดียวกัน
+ใช้ signal เดียวและเลือก metadata ของ B ล่าสุด ไม่ซื้อซ้ำตามจำนวน candidates
+`reference_window=63` ใน pivot API เป็น vestigial parameter ไม่ใช่ expiry pattern
+
+ตัวอย่าง Close: `100,105,102,99,100,110,105,107,111`
+B=105, C_close=99, D=110, F=111 หากแท่ง C มี Low=91 ใช้ 91 คำนวณ trail
+ไม่ใช้ 91 เป็น C threshold สำหรับ pattern
+
+## 4. Entry และ earnings correction
+
+เมื่อ F fire ตรวจ reference ล่าสุด: วัน gap หลัง earnings ใช้ **Open** เป็น R
+ใช้ทั้ง gap ขึ้นและลง ช่วงซื้อทันทีไม่เกิน `1.10 × R`
+หากราคาเหนือ band ให้ WAITING_CORRECTION รอ Low แตะ ceiling แล้วเข้าที่
+`min(Open, ceiling)` หรือปล่อยเมื่อ reference อายุครบ 21 trading bars ให้เข้า Close
+ถ้าไม่มี reference/gate ก็เข้าตาม pivot ที่ Close ของวันสัญญาณ
+
+ใน waiter code ประเมิน touch/expiry **ก่อน** C_close invalidation:
+หากแท่งเดียวกันทั้งแตะ ceiling และปิดต่ำกว่า C อาจเข้าได้ตามลำดับนี้
+WAITING ไม่ใช่ holding และไม่นับ concurrent exposure; reconfirmed waiter ถูก merge
+ไม่ปล่อยหลาย duplicate buys พร้อมกัน
+
+**ข้อแตกต่างที่ต้องเปิดเผย:** reference +302.92% เปิด
+`use_golden_cross_gap_override=True` ใน backtest โดยรวมราคา SMA Golden Cross
+เข้ากับ reference lookup (ค่า cross ของวันเดียวกัน overwrite earnings reference)
+ไม่ใช่การเปิด SMA entry gate ระบบ live ไม่ใช้ override นี้ ผล offline gap-only
+ต้นทุนเดียวกันคือ +299.66%, DD −27.90%, WR 42.62%, avg loss −12.34%
+ห้ามเรียก +302.92% ว่า production parity จนกว่าจะทดสอบ/รับรองความต่างนี้
+
+## 5. Initial SL
+
+ATR14 เป็น arithmetic rolling mean ของ True Range 14 แท่ง ไม่ใช่ Wilder RMA
+`TR = max(High−Low, abs(High−priorClose), abs(Low−priorClose))`
+
+`distance = clamp(2.5 × ATR14 / entry_price, 0.10, 0.25)`
+
+`initial_SL = entry_price × (1 − distance)`
+
+ATR missing มี fallback flat 10% ใน code ต้องแจ้ง ไม่ใช่ยืนยันว่า ATR พร้อมเสมอ
+แต่ละ pyramid slot เริ่ม SL ของตนเอง (`shared_initial_stop=False`)
+SL ไม่ใช่ guarantee ขาดทุนสูงสุด: overnight gap/slip/commission ทำให้เสียมากกว่าได้
+
+## 6. Trailing stop (TS)
+
+มี fresh valid pivot ให้ candidate trail จาก **C_low** ของ pattern ใหม่:
+`buffer = clamp(2.5 × ATR14 / C_low, 0.10, 0.25)`
+`candidate_TS = C_low × (1 − buffer)`
+เท่ากับ C_low−2.5×ATR เฉพาะเมื่อ raw buffer อยู่ระหว่าง floor/cap เท่านั้น
+ใช้ `max(active_stop, candidate_TS)` ยกเท่านั้น ไม่ลด stop เดิม
+ยกกับ slots ที่ถืออยู่ของ symbol เดียวกัน ไม่มี signal-close ratchet อื่นเปิดอยู่
+ATR unavailable มี fallback `C_low × 0.995`
+
+SL/TS เป็น protective stop ตัวเดียวที่เดินขึ้น ไม่ใช่สองคำสั่งขายให้ยิงซ้ำ
+event log แยกเหตุ initial SL / trailing TS และ slot ownership ได้
+กำไรขาดทุนจาก TS อาจยังติดลบ และ SL gap อาจเกินระยะตั้งต้น
+
+## 7. Take profit: POC tiered FULL CLOSE
+
+POC approximation ใช้ expanding history ถึงวันปัจจุบัน 250 price bins
+นำ volume ทั้งแท่งลง bin ของ typical price `(High+Low+Close)/3`
+ไม่ใช่ true trade-by-trade volume profile ของตลาด
+
+กำหนด tier จาก `entry_price / POC_at_entry`:
+
+| Ratio | Tier | Target gain | Target price |
+|---|---:|---:|---:|
+| &gt; 2.0 | 1 | +29.655% | entry × 1.29655 |
+| &gt; 1.5 และ ≤ 2.0 | 2 | +74.655% | entry × 1.74655 |
+| ≤ 1.5 | 3 | +299.655% | entry × 3.99655 |
+
+แตะด้วย **Close** ไม่ใช่ High; ปิดเต็ม slot ที่ Close แล้วปรับ slippage/fee
+ทุก tier → CLOSED ไม่มี partial half exit ไม่มี TP1_TAKEN executable state
+เมื่อ assign แล้ว tier/target ไม่เลื่อนตาม POC ภายหลัง
+Corner case: ถ้า entry ยังไม่มี POC code retry assign ด้วย Close/POC ในวันถัดที่พร้อม
+จึงต้องบันทึก tier assignment time ไม่อ้าง fixed-at-entry ในกรณี missing POC
+
+## 8. ลำดับเหตุการณ์ในแท่งเดียว
+
+1. สำหรับ slot ที่ถือมาก่อน ตรวจ Low กับ **stop เดิม** ก่อน
+2. ถ้าทะลุ stop ปิดที่ `min(Open, stop)` แล้วปรับ sell slippage และ fee
+3. ถ้าไม่โดน stop จึง raise trailing จาก pattern ใหม่
+4. ตรวจ Close กับ TP แล้วปิดเต็มถ้าผ่าน
+5. ประมวลผล entry/waiter ตาม engine; entry ใหม่ไม่โดน same-bar stop ย้อนหลัง
+
+ไม่ใช้ TS ที่เพิ่งคำนวณจากข้อมูลหลังจบวันขายที่ Low ก่อนหน้าในวันเดียวกัน
+ถ้าแท่ง Low โดน old stop และ Close ผ่าน TP ให้ stop มี priority
+แบบจำลองอาศัย daily bars ไม่รู้ real intraday tick chronology/actual fills
+
+## 9. Pyramiding, form-after-stop และทุน
+
+Pyramiding เปิดอยู่ new distinct F อาจเปิด slot เพิ่ม ไม่มี max_positions hard cap
+หลัง protective stop ต้องใช้ B ที่เกิด **หลัง** stop watermark เพื่อ reenter
+ไม่ใช้ old pattern กลับเข้าซ้ำ รวมถึง candidates ที่เกิดก่อน stop
+
+35 sleeves ใช้ทุนเริ่ม symbol ละ 10,000 บาท หรือ USD285.714 ที่ FX35
+entry desired notional =95% ของ starting sleeve (9,500 บาท ไม่ใช่95%ของNAVใหม่)
+ซื้อ integer shares ได้ไม่เกิน affordable cash หลัง fee; เติมไม้ภายในเงินของ sleeve
+ไม่ยืมทุน symbol อื่น ไม่มี leverage และไม่ได้เติมเงินใหม่ต่อ slot
+จึงมีบาง symbol/บาง signal ที่ซื้อไม่ได้ทั้งที่ pivot fire (เช่นราคาเกินทุนต่อหุ้น)
+9500 เป็น notional ก่อน rounding/fee ไม่ใช่ actual fill รับประกัน
+
+## 10. Default switches และความจริงแต่ละชั้น
+
+ATR stop/trail ON; ATR multiplier2.5/floor10%/cap25%; ref-low trail;
+C-low correction OFF; SMA entry gate OFF; shared initial stop OFF;
+signal ratchet OFF; leverage OFF; policy advice ไม่ execute อัตโนมัติ
+
+Live tradeability gate ใช้ price ≥$5 และ median daily dollar volume ≥$5M
+บน trailing window30sessions; หุ้นหลุด liquidity ไม่รับ entry/wait ใหม่
+แต่ยังต้องจัดการ exits ของ slots ที่ถืออยู่ ไม่ลบ holding เพื่อให้ report สวย
+Frozen retrospective universe ไม่เท่ากับการ replay historical screener/liquidity
+eligibility ทุกวัน จึงไม่ถือว่าได้พิสูจน์ production portfolio universe แล้ว
+
+รายละเอียด expiry ใน code: reference หมดอายุเมื่อ age **เกิน** 21 trading bars
+ไม่ใช่เสมอเข้าที่แท่งที่21พอดี ทั้งนี้ขึ้นกับ age initialization ของ event reference
+
+แยก signal positions, model sleeves, proposals, actual ledger, broker net holdings
+และ slot fills เสมอ Webull net quantity ต่อ symbol ไม่พิสูจน์ว่าแต่ละ slot ถือเท่าไร
+Live execution ยัง disabled/blocked จนกว่าจะมี approval/endpoint/account/credentials,
+read-only reconciliation, verified slot allocation, full paper lifecycle และ
+one-sleeve controlled live acceptance ตามการอนุมัติของผู้ใช้
+
+Risk default ใช้ raw NAV; exact flow-adjusted TWR แยกจาก risk policy
+report/Discord ห้ามตีความ closed slot เป็น live order ส่งจริง
+stop notification ต้อง deduplicate ใน durable outbox โดยไม่ทำให้ exit event สูญหาย
+
+## 11. Research acceptance
+
+selected current-universe retrospective +302.92% เป็น **reference ไม่ใช่ guarantee**
+ผลย้อนช่วงอื่นที่ต้นทุนเดียวกัน: 2017–2020 +48.22% DD−34.60% WR31.24%;
+2020–2023 +11.74% DD−41.58% WR27.30% ไม่ผ่าน original constraints ทั้งสองช่วง
+ไม่มีการ tune แล้วเรียกช่วงที่เห็นแล้วว่า holdout
+
+ต้องมี licensed point-in-time universe, delisted settlement, corporate actions,
+fundamental/earnings availability timestamps และ predeclared untouched holdout
+ก่อนยืนยัน independent strategy performance ประวัติ screener จริงยังไม่พอ252sessions
+ข้อเสนอวิจัย: preregister regime/risk overlays และ portfolio sizing ทีละชุด,
+เทียบ Buy-and-Hold, รวม FX/dividends/feesจริง, ทดสอบ full lifecycle โดยไม่
+เปลี่ยน default จากผลการ optimize บนข้อมูลที่ใช้คัดหุ้นอยู่แล้ว
+
+Source of truth: `signals/pivot_buy.py`, `signals/state_machine.py`,
+`backtest/strategy.py`, `backtest/run_backtest.py`, `portfolio/default_model.py`
+และ selected-reference/source hashes ใน research artifacts ของ delivery
+</pre>
+<small>Reference THB350K-FX35-FEE035-SLIP10-20260923 · source SHA256 cb0dfa8424c3be239b78fbd5e961b6133fbee1d76fbed1f31c71986f89d9dca5 · research only · updated2026-10-05</small></html>
